@@ -1,3 +1,11 @@
-first iteraction
-second iteration
-last iteraction
+mov R0 $1
+sub R0 R1 R2
+sub R0 R1 R2
+sub R0 R1 R2
+sub R0 R1 R2
+label1: cmp R1 R2 
+sub R0 R1 R2
+sub R0 R1 R2
+sub R0 R1 R2
+sub R0 R1 R2
+hlt
