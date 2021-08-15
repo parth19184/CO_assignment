@@ -50,7 +50,7 @@ def main():
                 return '000' + convert_to_8bit_binary(int(inst_list[1][1: ]))
         else:
             sys.exit('wrong instruction1')
-        pass
+        
     def encoding_mov(instruction : str) ->str:
         opcode_fun = instruction.split(' ')
 
