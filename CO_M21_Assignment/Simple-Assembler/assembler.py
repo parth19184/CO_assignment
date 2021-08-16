@@ -235,7 +235,7 @@ def main():
                 instruction_parameter[0] = opcode_final
             elif(instruction_parameter[0][-1] == ':'):
                 instruction_parameter = instruction_parameter[1:]
-                print(instruction_parameter)
+                #print(instruction_parameter)
             final_11 = encoding_11(char_type, instruction_parameter)
         print((first_5 + final_11) + '\n')
         instruction_count += 1
