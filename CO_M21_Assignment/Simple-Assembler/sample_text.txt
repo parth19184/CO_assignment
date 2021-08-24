@@ -1,0 +1,4 @@
+var X
+mov R1 R2
+label1: add R1 R2 R3
+hlt
