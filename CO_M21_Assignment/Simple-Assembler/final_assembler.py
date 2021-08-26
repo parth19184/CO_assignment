@@ -9,6 +9,15 @@ def main():
 			if not line.isspace():
 				line_added = line.replace('\n', '')
 				lines.append(line_added)
+	
+	def convert_to_8bit_binary(number: int) -> str:        
+		bnr = bin(number).replace('0b','')
+		x = bnr[::-1] #this reverses an array
+		while len(x) < 8:
+			x += '0'
+			bnr = x[::-1]
+		return bnr
+
 	#labels have been updated in this function itself
 	#this function returns a new string which is like the input instruction but easier to operate with
 	def encode_instruction(instruction_string: str, instruction_number: int, has_var_ended: bool, final_instruction_length: int) -> str:
@@ -39,19 +48,44 @@ def main():
 		return opcode_dict[command[0]]
 
 	def encode_11(instruction_string_encoded: str, instruction_number: int) -> str:
-		instruction_line_parsed = instruction_string.split(" ")
+		instruction_line_parsed = instruction_string_encoded.split(" ")
 		instruction_type = type_dict[instruction_line_parsed[0]]
 
 		#if statements to be started from here
 		if instruction_type == 'A':
-			try:
-				if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in register_dict and instruction_line_parsed[3] in register_dict :
-					return '00' + register_dict[instruction_line_parsed[1]] + register_dict[instruction_line_parsed[2]] + register_dict[instruction_line_parsed[3]]
-			except:
+			
+			if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in register_dict and instruction_line_parsed[3] in register_dict :
+				return '00' + register_dict[instruction_line_parsed[1]] + register_dict[instruction_line_parsed[2]] + register_dict[instruction_line_parsed[3]]
+			else:
 				sys.exit('wrong syntax at line number {} for type A instruction'.format(instruction_number))
 
-		elif instruction_type == 'B'
-	
+		elif instruction_type == 'B':
+			if instruction_line_parsed[2][0] == '$' and instruction_line_parsed[1] in register_dict:
+				return register_dict[instruction_line_parsed[1]] + convert_to_8bit_binary(int(instruction_line_parsed[2][1: ]))
+			else:
+				sys.exit('wrong syntax at line {} for type B instruction'.format(instruction_number))
+
+		elif instruction_type == 'C':
+			if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in register_dict:
+				return '00000' + register_dict[instruction_line_parsed[1]] + register_dict[instruction_line_parsed[2]]
+			else:
+				return sys.exit('wrong syntax at line {} for type C instruction'.format(instruction_number))
+
+		elif instruction_type == 'D':
+			if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in var_storing_dict:
+				return register_dict[instruction_line_parsed[1]] + convert_to_8bit_binary(var_storing_dict[instruction_line_parsed[2]])
+			#elif instruction_line_parsed[1] in register_dict and 
+			else:
+				sys.exit('wrong syntax at line {} for type D instruction'.format(instruction_number))
+
+		elif instruction_type == 'E':
+			if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in label_dict:
+				return register_dict[instruction_line_parsed[1]] + convert_to_8bit_binary(label_dict[instruction_line_parsed[2]])
+			else:
+				sys.exit('wrong syntax at line {} for type E instruction'.format(instruction_number))
+
+		elif instruction_type == 'F':
+			return '00000000000'
 	opcode_dict = {
     	'add': '00000',
     	'sub': '00001',
@@ -111,6 +145,7 @@ def main():
 
 	label_dict = {}
 	var_storing_dict = {}
+	final_assembly_code = []
     #halt check statement:
 	if lines[-1] != 'hlt':
 		sys.exit("last line is not a halt instruction [ERROR]")
@@ -148,11 +183,19 @@ def main():
 		instruction_string = lines[instruction_counter + var_loop_counter]
 		
 		encoded_instruction = encode_instruction(instruction_string, instruction_counter, has_var_ended, final_instruction_length)
-		print(encoded_instruction)
+		#print(encoded_instruction)
 		first_5_bits = encode_5(encoded_instruction)
 
+		
+		#print(first_5_bits)
+
+		second_11_bits = encode_11(encoded_instruction, instruction_counter)
+		#print(second_11_bits)
+		instruction_binary = first_5_bits + second_11_bits
+		final_assembly_code.append(instruction_binary)
 		instruction_counter += 1
-		print(first_5_bits)
+		
+	print(final_assembly_code)
 
 if __name__ == "__main__":
 	main()
