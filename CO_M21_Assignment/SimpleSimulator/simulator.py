@@ -5,13 +5,6 @@ def main():
 	#execute errors using sys.exit(<message>), if you are using try except, please run the code on sample cases
 	#decide whether to change flags and registers in separate functions or do it in run()
 	
-	lines = []
-
-	for mem_instruction in sys.stdin:
-		if mem_instruction == '\n':
-			break
-		line_added = mem_instruction.replace('\n', '')
-		lines.append(line_added)
 	
 	def convert_to_8bit_binary(number: int) -> str:                 
 		bnr = bin(number).replace('0b','') #bin() returns string  
@@ -38,13 +31,13 @@ def main():
 		if type_dict[command] == 'A':
 			return command + ' ' + register_dict_rev[binary_instruction[7:10]] + ' ' + register_dict_rev[binary_instruction[10:13]] + ' ' + register_dict_rev[binary_instruction[13:]]
 		elif type_dict[command] == 'B':
-			return command + ' ' + register_dict_rev[binary_instruction[5:8]] + ' ' + binary_instruction[9:]
+			return command + ' ' + register_dict_rev[binary_instruction[5:8]] + ' ' + binary_instruction[8:]
 		elif type_dict[command] == 'C':
 			return command + ' ' + register_dict_rev[binary_instruction[10:13]] + ' ' + register_dict_rev[binary_instruction[13:]]
 		elif type_dict[command] == 'D':
-			return command + ' ' + register_dict_rev[binary_instruction[5:8]] + ' ' + binary_instruction[9:]
+			return command + ' ' + register_dict_rev[binary_instruction[5:8]] + ' ' + binary_instruction[8:]
 		elif type_dict[command] == 'E':
-			return command + ' ' + binary_instruction[9:]
+			return command + ' ' + binary_instruction[8:]
 		elif type_dict[command] == 'F':
 			return command
 
@@ -53,7 +46,7 @@ def main():
 		instruction=i.split()
 		first_word = instruction[0] #get the first instruction ie (mov, cmp, etc)
 		if first_word=='add':
-			if convert_to_int(rf.dict_register_file[instruction[3]])+convert_to_int(rf.dict_register_file[instruction[2]])>(2^16)-1:
+			if convert_to_int(rf.dict_register_file[instruction[3]])+convert_to_int(rf.dict_register_file[instruction[2]])>(2**16)-1:
 				rf.dict_register_file[instruction[1]]=bin(convert_to_int(rf.dict_register_file[instruction[2]])+convert_to_int(rf.dict_register_file[instruction[3]])).replace('0b','')[-16:]
 				rf.dict_register_file['R7']='0000000000001000'
 			else:
@@ -102,7 +95,7 @@ def main():
 			
 			rf.dump()
 		elif first_word=='mul':
-			if convert_to_int(rf.dict_register_file[instruction[3]])*convert_to_int(rf.dict_register_file[instruction[2]])>(2^16)-1:
+			if convert_to_int(rf.dict_register_file[instruction[3]])*convert_to_int(rf.dict_register_file[instruction[2]])>(2**16)-1:
 				rf.dict_register_file[instruction[1]]=bin(convert_to_int(rf.dict_register_file[instruction[2]])*convert_to_int(rf.dict_register_file[instruction[3]])).replace('0b','')[-16:]
 				rf.dict_register_file['R7']='0000000000001000'
 			else:
@@ -213,6 +206,8 @@ def main():
 			global halt 
 			halt=True
 			rf.dict_register_file['R7']='0000000000000000'
+			pc.dump()
+			rf.dump()
 
 
 
@@ -238,7 +233,7 @@ def main():
 	class MEM:
 		memory = []
 		
-		def _init_(self):
+		def __init__(self):
 			for i in range(256):                                   
 				self.memory.append("0000000000000000")                          
 		def dump(self):
@@ -248,7 +243,7 @@ def main():
 	class RF:
 		dict_register_file = {}
 
-		def _init_(self):
+		def __init__(self):
 			#append all register values with 8 bits to the dictionary
 			for i in range(8):
 				self.dict_register_file['R'+str(i)]='0000000000000000'
@@ -268,6 +263,17 @@ def main():
 		def dump(self):
 			print(self.program_counter,end=' ')
 	#halting instruction as bool
+
+	
+	inst = []
+	#print('open_test')
+	for mem_instruction in sys.stdin:
+		if mem_instruction == '\n':
+			break
+		line_added = mem_instruction.replace('\n', '')
+		inst.append(line_added)
+
+	#print('end test')
 
 
 
@@ -341,7 +347,7 @@ def main():
 	rf=RF()
 	pc=PC()
 
-	inst=lines
+	#inst=lines
 	for i in range(len(inst)):
 		mem.memory[i]=inst[i]
 
@@ -355,5 +361,5 @@ def main():
 
 	
 
-if __name__ == "_main_":
+if __name__ == "__main__":
 	main()
