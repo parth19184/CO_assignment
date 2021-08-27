@@ -1,102 +1,102 @@
-#import random_text.txt
-
 import sys
+import shutil
+
 def main():
+	lines = []
+	
+	#original = 
+	#this part of the code is used so that blank lines are removed from lines list
+	'''with open('sample_text.txt') as f:	#we will later format the text files as variables to run them easily
+		for line in f:					#have been converted so that \n is removed and does not cause problems in the string parsing
+			if not line.isspace():
+				line_added = line.replace('\n', '')
+				lines.append(line_added)'''
+	
 
-    with open('random_text.txt') as f:	#we will later format the text files as variables to run them easily
-    	lines = f.readlines()
+	for mem_instruction in sys.stdin:
+		if mem_instruction == '\n':
+			break
+		line_added = mem_instruction.replace('\n', '')
+		lines.append(line_added)
+		
 
-    #print(lines)
-    def convert_to_8bit_binary(number: int) -> str:
-        
+	def convert_to_8bit_binary(number: int) -> str:        
+		bnr = bin(number).replace('0b','')
+		x = bnr[::-1] #this reverses an array
+		while len(x) < 8:
+			x += '0'
+			bnr = x[::-1]
+		return bnr
 
-        bnr = bin(number).replace('0b','')
-        x = bnr[::-1] #this reverses an array
-        while len(x) < 8:
-            x += '0'
-        bnr = x[::-1]
-        return bnr
-    
-    def encoding_5(instruction: str) ->str:
-        return opcode_dict[instruction]
-    
-    def get_char_type(instruction: str) -> str:
-        return type_dict[instruction]
-    
-    def encoding_11(type1 :str, inst_list: list) -> int:
-        #code the if else statements here:
-        
+	#labels have been updated in this function itself
+	#this function returns a new string which is like the input instruction but easier to operate with
+	def encode_instruction(instruction_string: str, instruction_number: int, has_var_ended: bool, final_instruction_length: int) -> str:
+		instruction_line_parsed = instruction_string.split(' ')
+		if(instruction_string == 'hlt' and instruction_number != final_instruction_length - 1):
+			sys.exit("hlt instruction at line {} before the end of the instruction [ERROR]".format(instruction_number))
 
-        if type1 == 'A':
-            return '00' + register_dict[inst_list[1]] + register_dict[inst_list[2]]+ register_dict[inst_list[3][:2]]
-        elif type1 == 'B':
-            if inst_list[2] in memory_dict:
-                return register_dict[inst_list[1]] + convert_to_8bit_binary(int(memory_dict[inst_list[2]]))
-            else:
-                return register_dict[inst_list[1]] + convert_to_8bit_binary(int(inst_list[2][1: ]))
-        elif type1 == 'C':
-            
-            return '00000' + register_dict[inst_list[1]] + register_dict[inst_list[2]]
-        elif type1 == 'D':
-            if inst_list[2] in memory_dict:
-                return register_dict[inst_list[1]] + convert_to_8bit_binary(int(memory_dict[inst_list[2]]))
-            else:
-                return register_dict[inst_list[1]] + convert_to_8bit_binary(int(inst_list[2][1: ]))
+		elif(instruction_line_parsed[0] == 'var' and has_var_ended):
+			sys.exit("var assigned at line {} after assignment ended in the beginning".format(instruction_number))
+		
+		elif(instruction_line_parsed[0] == 'mov'):
+			if instruction_line_parsed[2][0] == '$':
+				return 'mov_imm ' + instruction_string[instruction_string.find(instruction_line_parsed[1]): ]
+			elif instruction_line_parsed[2] in register_dict:
+				return 'mov_reg ' + instruction_string[instruction_string.find(instruction_line_parsed[1]) - 1: ]
+			else:
+				sys.exit("wrong instruction syntax at line {} corresponding to mov".format(instruction_number))
+		elif(instruction_line_parsed[0] in opcode_dict):
+			return instruction_string
+		elif(instruction_line_parsed[0][-1] == ':'):
+			label_dict.update({instruction_line_parsed[0][: -1] : instruction_number})
+			return encode_instruction(instruction_string[instruction_string.find(":") + 2: ], instruction_number, has_var_ended, final_instruction_length)
+		else:
+			sys.exit("wrong instruction syntax at line {}".format(instruction_number))
 
-        elif type1 == 'E':
-            if inst_list[1] in memory_dict:
-                return '000' + convert_to_8bit_binary(int(memory_dict[inst_list[1]]))
-            else:
-                return '000' + convert_to_8bit_binary(int(inst_list[1][1: ]))
-        else:
-            sys.exit('wrong instruction1')
-        
-    def encoding_mov(instruction : str) ->str:
-        opcode_fun = instruction.split(' ')
+	def encode_5(instruction_string_encoded: str) -> str:
+		command = instruction_string_encoded.split(' ')
+		return opcode_dict[command[0]]
 
-        try:
-            opcode = opcode_fun[0]
-            
-        except:
-            print("wrong instruction2")
-            sys.exit("Error message")
+	def encode_11(instruction_string_encoded: str, instruction_number: int) -> str:
+		instruction_line_parsed = instruction_string_encoded.split()
+		instruction_type = type_dict[instruction_line_parsed[0]]
 
-        if opcode == 'mov':
-            if opcode_fun[2][0] == '$':
-                return 'mov_imm'
+		#if statements to be started from here
+		if instruction_type == 'A':
+			
+			if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in register_dict and instruction_line_parsed[3] in register_dict :
+				return '00' + register_dict[instruction_line_parsed[1]] + register_dict[instruction_line_parsed[2]] + register_dict[instruction_line_parsed[3]]
+			else:
+				sys.exit('wrong syntax at line number {} for type A instruction'.format(instruction_number))
 
-            elif opcode_fun[2][0] == 'R':
-                return 'mov_reg'
-            else:
-                raise Exception("wrong instruction3")
-        elif opcode == 'var':
-            raise Exception("var cannot be in the middle of the instructions")
-            sys.exit('Error message')
-        elif opcode in type_dict:
-            return opcode
-        elif opcode == 'hlt':
-            sys.exit('program has ended')
-        elif(opcode[-1] == ':'):
-            
-            
-            return encoding_mov(instruction[instruction.find(':') + 2: ])
-            
-        else:
-            sys.exit('program has ended due to halting or wrong instruction')
+		elif instruction_type == 'B':
+			if instruction_line_parsed[2][0] == '$' and instruction_line_parsed[1] in register_dict:
+				return register_dict[instruction_line_parsed[1]] + convert_to_8bit_binary(int(instruction_line_parsed[2][1: ]))
+			else:
+				sys.exit('wrong syntax at line {} for type B instruction'.format(instruction_number))
 
-    
+		elif instruction_type == 'C':
+			if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in register_dict:
+				return '00000' + register_dict[instruction_line_parsed[1]] + register_dict[instruction_line_parsed[2]]
+			else:
+				return sys.exit('wrong syntax at line {} for type C instruction'.format(instruction_number))
 
-    #the follwing are the different flags, they are set to boolean
-    """overflow_flag = False
-    lessthan_flag = False
-    greaterthan_flag = False
-    equal_flag = False"""
-    
-    FLAG_register = [0]*16
+		elif instruction_type == 'D':
+			if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in var_storing_dict:
+				return register_dict[instruction_line_parsed[1]] + convert_to_8bit_binary(var_storing_dict[instruction_line_parsed[2]])
+			#elif instruction_line_parsed[1] in register_dict and 
+			else:
+				sys.exit('wrong syntax at line {} for type D instruction'.format(instruction_number))
 
-    #print(FLAG_register)
-    
-    opcode_dict = {
+		elif instruction_type == 'E':
+			if instruction_line_parsed[1] in register_dict and instruction_line_parsed[2] in label_dict:
+				return register_dict[instruction_line_parsed[1]] + convert_to_8bit_binary(label_dict[instruction_line_parsed[2]])
+			else:
+				sys.exit('wrong syntax at line {} for type E instruction'.format(instruction_number))
+
+		elif instruction_type == 'F':
+			return '00000000000'
+	opcode_dict = {
     	'add': '00000',
     	'sub': '00001',
     	'mov_imm': '00010',
@@ -119,7 +119,7 @@ def main():
     	'hlt': '10011'
     }
 
-    type_dict = {
+	type_dict = {
     	'add': 'A',
     	'sub': 'A',
     	'mov_imm': 'B',
@@ -142,103 +142,107 @@ def main():
     	'hlt': 'F',
         'var': 'G'
     }
-    register_dict = {
-        'R0':'000',
-        'R1':'001',
-        'R2':'010',
-        'R3':'011',
-        'R4':'100',
-        'R5':'101',
-        'R6':'110',
-        'FLAGS':'111'
-    }
+	register_dict = {
+		'R0':'000',
+		'R1':'001',
+		'R2':'010',
+		'R3':'011',
+		'R4':'100',
+		'R5':'101',
+		'R6':'110',
+		'FLAGS':'111'
+	}
 
+	label_dict = {}
+	var_storing_dict = {}
+	var_storing_list = []
+	encoded_instruction_list = []
+	final_assembly_code = []
+    #halt check statement:
+	if lines[-1] != 'hlt':
+		sys.exit("last line is not a halt instruction [ERROR]")
 
-    #iter = len(lines)
+    #get length of the total instructions:
+	initial_instruction_length = len(lines)
+	
 
-    #instruction block for opcode
-    instructions = []
-    first_keyword_arr = []
-    memory_dict = {}
-    for instruction_num in lines:
-        instructions.append(instruction_num)
-        
+	#throw error when instruction length > 256
+	if initial_instruction_length > 256:
+		sys.exit("instruction length is greater than 256 and cannot be stored in the memory")
 
-    looping_count = 0
-    random_count = 0
-    total_instruction_length =len(first_keyword_arr)
-    for iteration in instructions:
-        key_element = iteration.split(' ')
-        first_keyword_arr.append(key_element[0])
-        if(looping_count< total_instruction_length and first_keyword_arr[looping_count] == 'var' and random_gen == True):
-            memory_dict.update({random_count: memorykey_element[1]})
-            random_count += 1 
-            looping_count += 1
-    #print(encoding_mov(instructions[5]))
+	#this part of the code adds all the variable assignments in a dictionary
+	var_loop_counter = 0
+	has_var_ended = False
+	while(var_loop_counter < initial_instruction_length and has_var_ended == False):
+		instruction_line_parsed = lines[var_loop_counter].split(' ')
+		if instruction_line_parsed[0] == 'var':
+			try:
+				#var_storing_dict.update({instruction_line_parsed[1]: var_loop_counter})
+				var_storing_list.append(instruction_line_parsed[1])
+				var_loop_counter += 1					#add the corresponding memory address to the variable (initially added the order of declaration)
+			except:
+				sys.exit("wrong variable assignment syntax at the beginning [no line number to be given]")
+		else:
+			has_var_ended = True
+			break
 
-    
-    
-    
-    
-    
-    #block for instruction count
-    if(total_instruction_length >256):
-        raise Exception("instruction length greater than 256")
-        sys.exit("error")
-    
-    
+	final_instruction_length = initial_instruction_length - var_loop_counter
 
+	instruction_counter = 0
 
-        
+	dictionary_counter = final_instruction_length
+	#print(final_instruction_length)
 
-    final_instruction_length = total_instruction_length - looping_count
-    #print(final_instruction_length)
-#instruction dictionary to set the lines:
-    number_dict = {}
-    final_instruction_dict ={}
-    dict_loop = 0
-    
-    for i in range(final_instruction_length):
-        number_dict.update({i:first_keyword_arr[looping_count]})
-        if (first_keyword_arr[looping_count] not in type_dict) and (first_keyword_arr[looping_count] != 'mov'):
-            final_instruction_dict.update({first_keyword_arr[looping_count]: i})
-        
-        
-        looping_count += 1
+	for variable in var_storing_list:
+		var_storing_dict.update({variable: dictionary_counter})
+		dictionary_counter += 1
 
-                
-    
-    
-        
-    #finally running the instructions:
-    instruction_count = 0
+	#print(var_storing_dict)
+	#print(var_storing_list)
+	while(instruction_counter < final_instruction_length):
+		
+								
+		instruction_string = lines[instruction_counter + var_loop_counter]
+		
+		encoded_instruction = encode_instruction(instruction_string, instruction_counter, has_var_ended, final_instruction_length)
+		#print(encoded_instruction)
+		encoded_instruction_list.append(encoded_instruction)
+		'''first_5_bits = encode_5(encoded_instruction)
+		#print(encoded_instruction)
+		
+		#print(first_5_bits)
 
-    while instruction_count in range(len(instructions)):
-        opcode_final = ''
-        final_11 = ''
-        this_list = instructions[instruction_count].split(' ')
-        if instructions[instruction_count].split(' ')[0] == 'hlt':
-            opcode_final = 'hlt'
-        else:
-            opcode_final = encoding_mov(instructions[instruction_count])
-        #print(opcode_final)
-        first_5 = encoding_5(opcode_final)
+		second_11_bits = encode_11(encoded_instruction, instruction_counter)
+		#print(second_11_bits)
+		instruction_binary = first_5_bits + second_11_bits
+		final_assembly_code.append(instruction_binary)'''
+		instruction_counter += 1
+		
+	#print(final_assembly_code)
+	#print(encoded_instruction_list)
 
-        char_type = get_char_type(opcode_final)
-        if(char_type == 'F'):
-            final_11 = '0'*11
-            print(first_5 + final_11)
-            sys.exit("assembly over")
-        else:
-            instruction_parameter = instructions[instruction_count].split(' ')
-            if(instruction_parameter[0] == 'mov'):
-                instruction_parameter[0] = opcode_final
-            elif(instruction_parameter[0][-1] == ':'):
-                instruction_parameter = instruction_parameter[1:]
-                #print(instruction_parameter)
-            final_11 = encoding_11(char_type, instruction_parameter)
-        print((first_5 + final_11) + '\n')
-        instruction_count += 1
+	instruction_counter = 0
 
+	while(instruction_counter < final_instruction_length):
+		
+								
+		'''instruction_string = lines[instruction_counter + var_loop_counter]
+		
+		encoded_instruction = encode_instruction(instruction_string, instruction_counter, has_var_ended, final_instruction_length)
+		#print(encoded_instruction)
+		encoded_instruction_list.append(encoded_instruction)'''
+		first_5_bits = encode_5(encoded_instruction_list[instruction_counter])
+		#print(encoded_instruction)
+		
+		#print(first_5_bits)
+
+		second_11_bits = encode_11(encoded_instruction_list[instruction_counter], instruction_counter)
+		#print(second_11_bits)
+		instruction_binary = first_5_bits + second_11_bits
+		final_assembly_code.append(instruction_binary)
+		instruction_counter += 1
+
+	for i in final_assembly_code :
+		print(i)
 if __name__ == "__main__":
 	main()
