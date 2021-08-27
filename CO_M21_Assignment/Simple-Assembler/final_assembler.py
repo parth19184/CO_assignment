@@ -30,9 +30,9 @@ def main():
 		
 		elif(instruction_line_parsed[0] == 'mov'):
 			if instruction_line_parsed[2][0] == '$':
-				return 'mov_imm' + instruction_string[instruction_string.find(instruction_line_parsed[1]): ]
+				return 'mov_imm ' + instruction_string[instruction_string.find(instruction_line_parsed[1]): ]
 			elif instruction_line_parsed[2] in register_dict:
-				return 'mov_reg' + instruction_string[instruction_string.find(instruction_line_parsed[1]) - 1: ]
+				return 'mov_reg ' + instruction_string[instruction_string.find(instruction_line_parsed[1]) - 1: ]
 			else:
 				sys.exit("wrong instruction syntax at line {} corresponding to mov".format(instruction_number))
 		elif(instruction_line_parsed[0] in opcode_dict):
@@ -145,6 +145,7 @@ def main():
 
 	label_dict = {}
 	var_storing_dict = {}
+	var_storing_list = []
 	final_assembly_code = []
     #halt check statement:
 	if lines[-1] != 'hlt':
@@ -165,7 +166,8 @@ def main():
 		instruction_line_parsed = lines[var_loop_counter].split(' ')
 		if instruction_line_parsed[0] == 'var':
 			try:
-				var_storing_dict.update({instruction_line_parsed[1]: var_loop_counter})
+				#var_storing_dict.update({instruction_line_parsed[1]: var_loop_counter})
+				var_storing_list.append(instruction_line_parsed[1])
 				var_loop_counter += 1					#add the corresponding memory address to the variable (initially added the order of declaration)
 			except:
 				sys.exit("wrong variable assignment syntax at the beginning [no line number to be given]")
@@ -176,7 +178,16 @@ def main():
 	final_instruction_length = initial_instruction_length - var_loop_counter
 
 	instruction_counter = 0
+
+	dictionary_counter = final_instruction_length
 	print(final_instruction_length)
+
+	for variable in var_storing_list:
+		var_storing_dict.update({variable: dictionary_counter})
+		dictionary_counter += 1
+
+	print(var_storing_dict)
+	print(var_storing_list)
 	while(instruction_counter < final_instruction_length):
 		
 								
