@@ -146,6 +146,7 @@ def main():
 	label_dict = {}
 	var_storing_dict = {}
 	var_storing_list = []
+	encoded_instruction_list = []
 	final_assembly_code = []
     #halt check statement:
 	if lines[-1] != 'hlt':
@@ -186,8 +187,8 @@ def main():
 		var_storing_dict.update({variable: dictionary_counter})
 		dictionary_counter += 1
 
-	print(var_storing_dict)
-	print(var_storing_list)
+	#print(var_storing_dict)
+	#print(var_storing_list)
 	while(instruction_counter < final_instruction_length):
 		
 								
@@ -195,8 +196,9 @@ def main():
 		
 		encoded_instruction = encode_instruction(instruction_string, instruction_counter, has_var_ended, final_instruction_length)
 		#print(encoded_instruction)
+		encoded_instruction_list.append(encoded_instruction)
 		first_5_bits = encode_5(encoded_instruction)
-
+		#print(encoded_instruction)
 		
 		#print(first_5_bits)
 
@@ -207,6 +209,6 @@ def main():
 		instruction_counter += 1
 		
 	print(final_assembly_code)
-
+	print(encoded_instruction_list)
 if __name__ == "__main__":
 	main()
