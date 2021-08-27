@@ -1,15 +1,25 @@
 import sys
+import shutil
 
 def main():
 	lines = []
 	
+	#original = 
 	#this part of the code is used so that blank lines are removed from lines list
-	with open('sample_text.txt') as f:	#we will later format the text files as variables to run them easily
+	'''with open('sample_text.txt') as f:	#we will later format the text files as variables to run them easily
 		for line in f:					#have been converted so that \n is removed and does not cause problems in the string parsing
 			if not line.isspace():
 				line_added = line.replace('\n', '')
-				lines.append(line_added)
+				lines.append(line_added)'''
 	
+
+	for mem_instruction in sys.stdin:
+		if mem_instruction == '\n':
+			break
+		line_added = mem_instruction.replace('\n', '')
+		lines.append(line_added)
+		
+
 	def convert_to_8bit_binary(number: int) -> str:        
 		bnr = bin(number).replace('0b','')
 		x = bnr[::-1] #this reverses an array
@@ -48,7 +58,7 @@ def main():
 		return opcode_dict[command[0]]
 
 	def encode_11(instruction_string_encoded: str, instruction_number: int) -> str:
-		instruction_line_parsed = instruction_string_encoded.split(" ")
+		instruction_line_parsed = instruction_string_encoded.split()
 		instruction_type = type_dict[instruction_line_parsed[0]]
 
 		#if statements to be started from here
@@ -181,7 +191,7 @@ def main():
 	instruction_counter = 0
 
 	dictionary_counter = final_instruction_length
-	print(final_instruction_length)
+	#print(final_instruction_length)
 
 	for variable in var_storing_list:
 		var_storing_dict.update({variable: dictionary_counter})
@@ -197,7 +207,7 @@ def main():
 		encoded_instruction = encode_instruction(instruction_string, instruction_counter, has_var_ended, final_instruction_length)
 		#print(encoded_instruction)
 		encoded_instruction_list.append(encoded_instruction)
-		first_5_bits = encode_5(encoded_instruction)
+		'''first_5_bits = encode_5(encoded_instruction)
 		#print(encoded_instruction)
 		
 		#print(first_5_bits)
@@ -205,10 +215,34 @@ def main():
 		second_11_bits = encode_11(encoded_instruction, instruction_counter)
 		#print(second_11_bits)
 		instruction_binary = first_5_bits + second_11_bits
-		final_assembly_code.append(instruction_binary)
+		final_assembly_code.append(instruction_binary)'''
 		instruction_counter += 1
 		
-	print(final_assembly_code)
-	print(encoded_instruction_list)
+	#print(final_assembly_code)
+	#print(encoded_instruction_list)
+
+	instruction_counter = 0
+
+	while(instruction_counter < final_instruction_length):
+		
+								
+		'''instruction_string = lines[instruction_counter + var_loop_counter]
+		
+		encoded_instruction = encode_instruction(instruction_string, instruction_counter, has_var_ended, final_instruction_length)
+		#print(encoded_instruction)
+		encoded_instruction_list.append(encoded_instruction)'''
+		first_5_bits = encode_5(encoded_instruction_list[instruction_counter])
+		#print(encoded_instruction)
+		
+		#print(first_5_bits)
+
+		second_11_bits = encode_11(encoded_instruction_list[instruction_counter], instruction_counter)
+		#print(second_11_bits)
+		instruction_binary = first_5_bits + second_11_bits
+		final_assembly_code.append(instruction_binary)
+		instruction_counter += 1
+
+	for i in final_assembly_code :
+		print(i)
 if __name__ == "__main__":
 	main()
